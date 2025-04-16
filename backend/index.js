@@ -4,7 +4,21 @@ const sqlite3 = require('sqlite3').verbose();
 const app = express();
 const port = 3000;
 
-app.use(cors({ origin: 'http://localhost:8080' }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || origin === 'null') {
+      callback(null, true);
+
+    } else if (origin === 'http://localhost:8080') {
+      callback(null, true);
+
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+}));
+
+
 app.use(express.json());
 
 const db = new sqlite3.Database('./database.sqlite', (err) => {
@@ -28,7 +42,7 @@ const initDb = () => {
           reject(err);
         } else {
           console.log('Users table ready.');
-          // Insert a test user for verification
+
           db.run(`INSERT OR IGNORE INTO users (id, name) VALUES (1, 'Test User')`, (err) => {
             if (err) {
               console.error('Error inserting test user:', err.message);
